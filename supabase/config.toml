@@ -1,0 +1,4 @@
+project_id = "oyaljmnlhlomlxgenksq"
+
+[functions.gadobot]
+verify_jwt = false
