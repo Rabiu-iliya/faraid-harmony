@@ -1,0 +1,156 @@
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Calculation = Tables<"calculations">;
+type CalcHeir = Tables<"calculation_heirs"> & { heirs: { name: string } | null };
+
+const COLORS = ["#2d6a4f", "#c4a54a", "#40916c", "#d4a843", "#52b788", "#b8860b", "#74c69d", "#8b7355"];
+
+export default function Reports() {
+  const { user } = useAuth();
+  const [calculations, setCalculations] = useState<Calculation[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [heirResults, setHeirResults] = useState<CalcHeir[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("calculations").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+      setCalculations(data || []);
+      if (data && data.length > 0) setSelected(data[0].id);
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (!selected) return;
+    supabase.from("calculation_heirs").select("*, heirs(name)").eq("calculation_id", selected).then(({ data }) => {
+      setHeirResults((data as CalcHeir[]) || []);
+    });
+  }, [selected]);
+
+  const activeHeirs = heirResults.filter((h) => !h.is_blocked);
+  const blockedHeirs = heirResults.filter((h) => h.is_blocked);
+  const pieData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", value: h.share_percentage }));
+  const barData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", amount: h.share_amount }));
+  const selectedCalc = calculations.find((c) => c.id === selected);
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <h1 className="font-serif text-3xl font-bold text-primary">Reports</h1>
+
+        {calculations.length === 0 ? (
+          <Card className="border-primary/10"><CardContent className="py-8 text-center text-muted-foreground">No calculations yet. Run a calculation first.</CardContent></Card>
+        ) : (
+          <>
+            <div className="flex gap-2 flex-wrap">
+              {calculations.map((c) => (
+                <button key={c.id} onClick={() => setSelected(c.id)}
+                  className={`px-4 py-2 rounded-md text-sm border transition-colors ${selected === c.id ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"}`}>
+                  {c.title} — {new Date(c.created_at).toLocaleDateString()}
+                </button>
+              ))}
+            </div>
+
+            {selectedCalc && (
+              <Card className="border-primary/10">
+                <CardHeader>
+                  <CardTitle className="font-serif">{selectedCalc.title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Total Estate: <span className="font-bold text-secondary">{Number(selectedCalc.total_estate).toLocaleString()} {selectedCalc.currency}</span>
+                    {selectedCalc.awl_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">ʿAwl Applied</Badge>}
+                    {selectedCalc.radd_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">Radd Applied</Badge>}
+                  </p>
+                </CardHeader>
+              </Card>
+            )}
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="border-primary/10">
+                <CardHeader><CardTitle className="font-serif text-lg">Share Distribution</CardTitle></CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, value }) => `${name}: ${value}%`}>
+                        {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="border-primary/10">
+                <CardHeader><CardTitle className="font-serif text-lg">Share Amounts</CardTitle></CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={barData}>
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="amount" fill="hsl(152, 45%, 28%)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-primary/10">
+              <CardHeader><CardTitle className="font-serif text-lg">Distribution Table</CardTitle></CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Heir</TableHead>
+                      <TableHead>Relationship</TableHead>
+                      <TableHead>Share Type</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Percentage</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {activeHeirs.map((h) => (
+                      <TableRow key={h.id}>
+                        <TableCell className="font-medium">{h.heirs?.name}</TableCell>
+                        <TableCell className="capitalize">{h.relationship.replace(/_/g, " ")}</TableCell>
+                        <TableCell>{h.fixed_share}</TableCell>
+                        <TableCell className="text-right font-mono">{Number(h.share_amount).toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{h.share_percentage}%</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {blockedHeirs.length > 0 && (
+              <Card className="border-destructive/20">
+                <CardHeader><CardTitle className="font-serif text-lg text-destructive">Blocked Heirs</CardTitle></CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Heir</TableHead><TableHead>Relationship</TableHead><TableHead>Reason</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {blockedHeirs.map((h) => (
+                        <TableRow key={h.id}>
+                          <TableCell>{h.heirs?.name}</TableCell>
+                          <TableCell className="capitalize">{h.relationship.replace(/_/g, " ")}</TableCell>
+                          <TableCell><Badge variant="destructive">{h.blocked_by}</Badge></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
