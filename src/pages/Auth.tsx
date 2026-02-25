@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +18,7 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { session } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (session) navigate("/dashboard");
@@ -43,13 +44,13 @@ export default function Auth() {
         });
         if (error) throw error;
         toast({
-          title: "Account created",
-          description: "Please check your email to verify your account.",
+          title: t("auth_account_created"),
+          description: t("auth_check_email"),
         });
       }
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t("auth_error"),
         description: error.message,
         variant: "destructive",
       });
@@ -65,29 +66,29 @@ export default function Auth() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
             <span className="font-serif text-2xl font-bold text-primary-foreground">G</span>
           </div>
-          <CardTitle className="font-serif text-3xl text-primary">GadoPro</CardTitle>
+          <CardTitle className="font-serif text-3xl text-primary">{t("auth_app_name")}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isLogin ? "Sign in to manage inheritance" : "Create your account"}
+            {isLogin ? t("auth_sign_in_desc") : t("auth_sign_up_desc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">{t("auth_full_name")}</Label>
                 <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("auth_email")}</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("auth_password")}</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
+              {loading ? t("auth_loading") : isLogin ? t("auth_sign_in") : t("auth_sign_up")}
             </Button>
           </form>
           <div className="mt-4 text-center">
@@ -96,7 +97,7 @@ export default function Auth() {
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-primary hover:underline"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? t("auth_no_account") : t("auth_has_account")}
             </button>
           </div>
         </CardContent>

@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 
 const languages = [
@@ -33,6 +33,7 @@ const currencies = [
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { t, setLanguage } = useLanguage();
   const { toast } = useToast();
   const [profile, setProfile] = useState({ full_name: "", phone: "" });
   const [prefs, setPrefs] = useState({ language: "en", currency: "USD" });
@@ -53,7 +54,7 @@ export default function SettingsPage() {
     if (!user) return;
     setLoading(true);
     await supabase.from("profiles").update(profile).eq("user_id", user.id);
-    toast({ title: "Profile updated" });
+    toast({ title: t("settings_profile_updated") });
     setLoading(false);
   };
 
@@ -61,52 +62,53 @@ export default function SettingsPage() {
     if (!user) return;
     setLoading(true);
     await supabase.from("user_preferences").update(prefs).eq("user_id", user.id);
-    toast({ title: "Preferences updated" });
+    setLanguage(prefs.language);
+    toast({ title: t("settings_prefs_updated") });
     setLoading(false);
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-2xl">
-        <h1 className="font-serif text-3xl font-bold text-primary">Settings</h1>
+        <h1 className="font-serif text-3xl font-bold text-primary">{t("settings_title")}</h1>
 
         <Card className="border-primary/10">
-          <CardHeader><CardTitle className="font-serif">Profile</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="font-serif">{t("settings_profile")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2"><Label>Full Name</Label><Input value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Phone</Label><Input value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Email</Label><Input value={user?.email || ""} disabled /></div>
-            <Button onClick={saveProfile} disabled={loading}>Save Profile</Button>
+            <div className="space-y-2"><Label>{t("settings_full_name")}</Label><Input value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t("settings_phone")}</Label><Input value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} /></div>
+            <div className="space-y-2"><Label>{t("settings_email")}</Label><Input value={user?.email || ""} disabled /></div>
+            <Button onClick={saveProfile} disabled={loading}>{t("settings_save_profile")}</Button>
           </CardContent>
         </Card>
 
         <Card className="border-primary/10">
-          <CardHeader><CardTitle className="font-serif">Language Settings</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="font-serif">{t("settings_language")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Display Language</Label>
+              <Label>{t("settings_display_language")}</Label>
               <Select value={prefs.language} onValueChange={(v) => setPrefs({ ...prefs, language: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{languages.map((l) => <SelectItem key={l.code} value={l.code}>{l.name}</SelectItem>)}</SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Language affects UI text only, not currency.</p>
+              <p className="text-xs text-muted-foreground">{t("settings_language_note")}</p>
             </div>
-            <Button onClick={savePrefs} disabled={loading}>Save Language</Button>
+            <Button onClick={savePrefs} disabled={loading}>{t("settings_save_language")}</Button>
           </CardContent>
         </Card>
 
         <Card className="border-primary/10">
-          <CardHeader><CardTitle className="font-serif">Currency Settings</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="font-serif">{t("settings_currency")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Default Currency</Label>
+              <Label>{t("settings_default_currency")}</Label>
               <Select value={prefs.currency} onValueChange={(v) => setPrefs({ ...prefs, currency: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{currencies.map((c) => <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>)}</SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">Currency affects all monetary values and calculations.</p>
+              <p className="text-xs text-muted-foreground">{t("settings_currency_note")}</p>
             </div>
-            <Button onClick={savePrefs} disabled={loading}>Save Currency</Button>
+            <Button onClick={savePrefs} disabled={loading}>{t("settings_save_currency")}</Button>
           </CardContent>
         </Card>
       </div>

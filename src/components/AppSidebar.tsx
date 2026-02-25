@@ -3,24 +3,27 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import type { TranslationKey } from "@/i18n";
 
-const navItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Assets", url: "/assets", icon: Coins },
-  { title: "Heirs", url: "/heirs", icon: Users },
-  { title: "Calculate", url: "/calculate", icon: Calculator },
-  { title: "Reports", url: "/reports", icon: FileText },
-  { title: "GadoBot", url: "/gadobot", icon: Bot },
-  { title: "Settings", url: "/settings", icon: Settings },
+const navItems: { titleKey: TranslationKey; url: string; icon: any }[] = [
+  { titleKey: "nav_dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { titleKey: "nav_assets", url: "/assets", icon: Coins },
+  { titleKey: "nav_heirs", url: "/heirs", icon: Users },
+  { titleKey: "nav_calculate", url: "/calculate", icon: Calculator },
+  { titleKey: "nav_reports", url: "/reports", icon: FileText },
+  { titleKey: "nav_gadobot", url: "/gadobot", icon: Bot },
+  { titleKey: "nav_settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   return (
     <Sidebar>
@@ -32,11 +35,11 @@ export function AppSidebar() {
       </div>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/60">Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/60">{t("nav_menu")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
@@ -45,7 +48,7 @@ export function AppSidebar() {
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span>{t(item.titleKey)}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -61,7 +64,7 @@ export function AppSidebar() {
           onClick={signOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
+          {t("nav_sign_out")}
         </Button>
       </SidebarFooter>
     </Sidebar>

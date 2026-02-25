@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins, Users, Calculator, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState({ assets: 0, heirs: 0, calculations: 0, totalValue: 0 });
 
   useEffect(() => {
@@ -29,18 +31,18 @@ export default function Dashboard() {
   }, [user]);
 
   const cards = [
-    { title: "Total Assets", value: stats.assets, icon: Coins, desc: `Total value: ${stats.totalValue.toLocaleString()}` },
-    { title: "Heirs", value: stats.heirs, icon: Users, desc: "Registered heirs" },
-    { title: "Calculations", value: stats.calculations, icon: Calculator, desc: "Completed calculations" },
-    { title: "Reports", value: stats.calculations, icon: FileText, desc: "Generated reports" },
+    { title: t("dashboard_total_assets"), value: stats.assets, icon: Coins, desc: `${t("dashboard_total_value")}: ${stats.totalValue.toLocaleString()}` },
+    { title: t("dashboard_heirs"), value: stats.heirs, icon: Users, desc: t("dashboard_registered_heirs") },
+    { title: t("dashboard_calculations"), value: stats.calculations, icon: Calculator, desc: t("dashboard_completed_calcs") },
+    { title: t("dashboard_reports"), value: stats.calculations, icon: FileText, desc: t("dashboard_generated_reports") },
   ];
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-primary">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome to GadoPro — Islamic Inheritance Distribution</p>
+          <h1 className="font-serif text-3xl font-bold text-primary">{t("dashboard_title")}</h1>
+          <p className="text-muted-foreground">{t("dashboard_welcome")}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
