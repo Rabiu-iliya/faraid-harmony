@@ -3,9 +3,14 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Calculation = Tables<"calculations">;
@@ -40,10 +45,90 @@ export default function Reports() {
   const barData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", amount: h.share_amount }));
   const selectedCalc = calculations.find((c) => c.id === selected);
 
+  const exportPDF = () => {
+    if (!selectedCalc) return;
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("GadoPro — Inheritance Report", 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Calculation: ${selectedCalc.title}`, 14, 30);
+    doc.text(`Total Estate: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`, 14, 38);
+    if (selectedCalc.awl_applied) doc.text("ʿAwl Applied", 14, 46);
+    if (selectedCalc.radd_applied) doc.text("Radd Applied", selectedCalc.awl_applied ? 60 : 14, 46);
+
+    autoTable(doc, {
+      startY: 54,
+      head: [["Heir", "Relationship", "Share Type", "Amount", "Percentage"]],
+      body: activeHeirs.map((h) => [
+        h.heirs?.name || "",
+        h.relationship.replace(/_/g, " "),
+        h.fixed_share || "",
+        Number(h.share_amount).toLocaleString(),
+        `${h.share_percentage}%`,
+      ]),
+    });
+
+    if (blockedHeirs.length > 0) {
+      const finalY = (doc as any).lastAutoTable?.finalY || 120;
+      doc.text("Blocked Heirs", 14, finalY + 10);
+      autoTable(doc, {
+        startY: finalY + 14,
+        head: [["Heir", "Relationship", "Blocked By"]],
+        body: blockedHeirs.map((h) => [
+          h.heirs?.name || "",
+          h.relationship.replace(/_/g, " "),
+          h.blocked_by || "",
+        ]),
+      });
+    }
+
+    doc.save(`${selectedCalc.title.replace(/\s+/g, "_")}_report.pdf`);
+  };
+
+  const exportExcel = () => {
+    if (!selectedCalc) return;
+    const wsData = [
+      ["GadoPro — Inheritance Report"],
+      [`Calculation: ${selectedCalc.title}`],
+      [`Total Estate: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`],
+      [],
+      ["Heir", "Relationship", "Share Type", "Amount", "Percentage"],
+      ...activeHeirs.map((h) => [
+        h.heirs?.name || "",
+        h.relationship.replace(/_/g, " "),
+        h.fixed_share || "",
+        Number(h.share_amount),
+        h.share_percentage,
+      ]),
+    ];
+    if (blockedHeirs.length > 0) {
+      wsData.push([], ["Blocked Heirs"], ["Heir", "Relationship", "Blocked By"]);
+      blockedHeirs.forEach((h) =>
+        wsData.push([h.heirs?.name || "", h.relationship.replace(/_/g, " "), h.blocked_by || ""])
+      );
+    }
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Report");
+    XLSX.writeFile(wb, `${selectedCalc.title.replace(/\s+/g, "_")}_report.xlsx`);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <h1 className="font-serif text-3xl font-bold text-primary">Reports</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="font-serif text-3xl font-bold text-primary">Reports</h1>
+          {selectedCalc && (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={exportPDF}>
+                <Download className="mr-1 h-4 w-4" /> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportExcel}>
+                <Download className="mr-1 h-4 w-4" /> Excel
+              </Button>
+            </div>
+          )}
+        </div>
 
         {calculations.length === 0 ? (
           <Card className="border-primary/10"><CardContent className="py-8 text-center text-muted-foreground">No calculations yet. Run a calculation first.</CardContent></Card>
