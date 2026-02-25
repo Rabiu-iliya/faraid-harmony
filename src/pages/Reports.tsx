@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { getRelationshipKey } from "@/i18n";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Calculation = Tables<"calculations">;
@@ -20,6 +22,7 @@ const COLORS = ["#2d6a4f", "#c4a54a", "#40916c", "#d4a843", "#52b788", "#b8860b"
 
 export default function Reports() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [heirResults, setHeirResults] = useState<CalcHeir[]>([]);
@@ -51,17 +54,17 @@ export default function Reports() {
     doc.setFontSize(18);
     doc.text("GadoPro — Inheritance Report", 14, 20);
     doc.setFontSize(12);
-    doc.text(`Calculation: ${selectedCalc.title}`, 14, 30);
-    doc.text(`Total Estate: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`, 14, 38);
-    if (selectedCalc.awl_applied) doc.text("ʿAwl Applied", 14, 46);
-    if (selectedCalc.radd_applied) doc.text("Radd Applied", selectedCalc.awl_applied ? 60 : 14, 46);
+    doc.text(`${selectedCalc.title}`, 14, 30);
+    doc.text(`${t("reports_total_estate")}: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`, 14, 38);
+    if (selectedCalc.awl_applied) doc.text(t("reports_awl"), 14, 46);
+    if (selectedCalc.radd_applied) doc.text(t("reports_radd"), selectedCalc.awl_applied ? 60 : 14, 46);
 
     autoTable(doc, {
       startY: 54,
-      head: [["Heir", "Relationship", "Share Type", "Amount", "Percentage"]],
+      head: [[t("reports_heir"), t("reports_relationship"), t("reports_share_type"), t("reports_amount"), t("reports_percentage")]],
       body: activeHeirs.map((h) => [
         h.heirs?.name || "",
-        h.relationship.replace(/_/g, " "),
+        t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
         Number(h.share_amount).toLocaleString(),
         `${h.share_percentage}%`,
@@ -70,13 +73,13 @@ export default function Reports() {
 
     if (blockedHeirs.length > 0) {
       const finalY = (doc as any).lastAutoTable?.finalY || 120;
-      doc.text("Blocked Heirs", 14, finalY + 10);
+      doc.text(t("reports_blocked_heirs"), 14, finalY + 10);
       autoTable(doc, {
         startY: finalY + 14,
-        head: [["Heir", "Relationship", "Blocked By"]],
+        head: [[t("reports_heir"), t("reports_relationship"), t("reports_reason")]],
         body: blockedHeirs.map((h) => [
           h.heirs?.name || "",
-          h.relationship.replace(/_/g, " "),
+          t(getRelationshipKey(h.relationship)),
           h.blocked_by || "",
         ]),
       });
@@ -89,22 +92,22 @@ export default function Reports() {
     if (!selectedCalc) return;
     const wsData = [
       ["GadoPro — Inheritance Report"],
-      [`Calculation: ${selectedCalc.title}`],
-      [`Total Estate: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`],
+      [selectedCalc.title],
+      [`${t("reports_total_estate")}: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`],
       [],
-      ["Heir", "Relationship", "Share Type", "Amount", "Percentage"],
+      [t("reports_heir"), t("reports_relationship"), t("reports_share_type"), t("reports_amount"), t("reports_percentage")],
       ...activeHeirs.map((h) => [
         h.heirs?.name || "",
-        h.relationship.replace(/_/g, " "),
+        t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
         Number(h.share_amount),
         h.share_percentage,
       ]),
     ];
     if (blockedHeirs.length > 0) {
-      wsData.push([], ["Blocked Heirs"], ["Heir", "Relationship", "Blocked By"]);
+      wsData.push([], [t("reports_blocked_heirs")], [t("reports_heir"), t("reports_relationship"), t("reports_reason")]);
       blockedHeirs.forEach((h) =>
-        wsData.push([h.heirs?.name || "", h.relationship.replace(/_/g, " "), h.blocked_by || ""])
+        wsData.push([h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""])
       );
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -117,7 +120,7 @@ export default function Reports() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="font-serif text-3xl font-bold text-primary">Reports</h1>
+          <h1 className="font-serif text-3xl font-bold text-primary">{t("reports_title")}</h1>
           {selectedCalc && (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={exportPDF}>
@@ -131,7 +134,7 @@ export default function Reports() {
         </div>
 
         {calculations.length === 0 ? (
-          <Card className="border-primary/10"><CardContent className="py-8 text-center text-muted-foreground">No calculations yet. Run a calculation first.</CardContent></Card>
+          <Card className="border-primary/10"><CardContent className="py-8 text-center text-muted-foreground">{t("reports_no_calcs")}</CardContent></Card>
         ) : (
           <>
             <div className="flex gap-2 flex-wrap">
@@ -148,9 +151,9 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="font-serif">{selectedCalc.title}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Total Estate: <span className="font-bold text-secondary">{Number(selectedCalc.total_estate).toLocaleString()} {selectedCalc.currency}</span>
-                    {selectedCalc.awl_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">ʿAwl Applied</Badge>}
-                    {selectedCalc.radd_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">Radd Applied</Badge>}
+                    {t("reports_total_estate")}: <span className="font-bold text-secondary">{Number(selectedCalc.total_estate).toLocaleString()} {selectedCalc.currency}</span>
+                    {selectedCalc.awl_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">{t("reports_awl")}</Badge>}
+                    {selectedCalc.radd_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">{t("reports_radd")}</Badge>}
                   </p>
                 </CardHeader>
               </Card>
@@ -158,7 +161,7 @@ export default function Reports() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <Card className="border-primary/10">
-                <CardHeader><CardTitle className="font-serif text-lg">Share Distribution</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="font-serif text-lg">{t("reports_share_dist")}</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
@@ -172,7 +175,7 @@ export default function Reports() {
               </Card>
 
               <Card className="border-primary/10">
-                <CardHeader><CardTitle className="font-serif text-lg">Share Amounts</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="font-serif text-lg">{t("reports_share_amounts")}</CardTitle></CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={barData}>
@@ -187,23 +190,23 @@ export default function Reports() {
             </div>
 
             <Card className="border-primary/10">
-              <CardHeader><CardTitle className="font-serif text-lg">Distribution Table</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="font-serif text-lg">{t("reports_dist_table")}</CardTitle></CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Heir</TableHead>
-                      <TableHead>Relationship</TableHead>
-                      <TableHead>Share Type</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right">Percentage</TableHead>
+                      <TableHead>{t("reports_heir")}</TableHead>
+                      <TableHead>{t("reports_relationship")}</TableHead>
+                      <TableHead>{t("reports_share_type")}</TableHead>
+                      <TableHead className="text-right">{t("reports_amount")}</TableHead>
+                      <TableHead className="text-right">{t("reports_percentage")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {activeHeirs.map((h) => (
                       <TableRow key={h.id}>
                         <TableCell className="font-medium">{h.heirs?.name}</TableCell>
-                        <TableCell className="capitalize">{h.relationship.replace(/_/g, " ")}</TableCell>
+                        <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                         <TableCell>{h.fixed_share}</TableCell>
                         <TableCell className="text-right font-mono">{Number(h.share_amount).toLocaleString()}</TableCell>
                         <TableCell className="text-right">{h.share_percentage}%</TableCell>
@@ -216,15 +219,15 @@ export default function Reports() {
 
             {blockedHeirs.length > 0 && (
               <Card className="border-destructive/20">
-                <CardHeader><CardTitle className="font-serif text-lg text-destructive">Blocked Heirs</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="font-serif text-lg text-destructive">{t("reports_blocked_heirs")}</CardTitle></CardHeader>
                 <CardContent className="p-0">
                   <Table>
-                    <TableHeader><TableRow><TableHead>Heir</TableHead><TableHead>Relationship</TableHead><TableHead>Reason</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>{t("reports_heir")}</TableHead><TableHead>{t("reports_relationship")}</TableHead><TableHead>{t("reports_reason")}</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {blockedHeirs.map((h) => (
                         <TableRow key={h.id}>
                           <TableCell>{h.heirs?.name}</TableCell>
-                          <TableCell className="capitalize">{h.relationship.replace(/_/g, " ")}</TableCell>
+                          <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                           <TableCell><Badge variant="destructive">{h.blocked_by}</Badge></TableCell>
                         </TableRow>
                       ))}

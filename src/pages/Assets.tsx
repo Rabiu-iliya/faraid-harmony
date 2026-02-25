@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,24 +9,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { getCategoryKey } from "@/i18n";
 import type { Tables } from "@/integrations/supabase/types";
 import type { Database } from "@/integrations/supabase/types";
 
 type Asset = Tables<"assets">;
 type AssetCategory = Database["public"]["Enums"]["asset_category"];
 
-const categories: { value: AssetCategory; label: string }[] = [
-  { value: "cash", label: "Cash" },
-  { value: "real_estate", label: "Real Estate" },
-  { value: "jewelry", label: "Jewelry" },
-  { value: "valuables", label: "Valuables" },
-  { value: "other", label: "Other" },
-];
+const categoryValues: AssetCategory[] = ["cash", "real_estate", "jewelry", "valuables", "other"];
 
 export default function Assets() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [open, setOpen] = useState(false);
@@ -48,14 +45,12 @@ export default function Assets() {
 
     if (editing) {
       const { error } = await supabase.from("assets").update(payload).eq("id", editing.id);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      if (error) { toast({ title: t("common_error"), description: error.message, variant: "destructive" }); return; }
     } else {
       const { error } = await supabase.from("assets").insert(payload);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      if (error) { toast({ title: t("common_error"), description: error.message, variant: "destructive" }); return; }
     }
-    setOpen(false);
-    setEditing(null);
-    setForm({ name: "", category: "other", value: "", description: "" });
+    setOpen(false); setEditing(null); setForm({ name: "", category: "other", value: "", description: "" });
     fetchAssets();
   };
 
@@ -77,27 +72,27 @@ export default function Assets() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-primary">Assets</h1>
-            <p className="text-muted-foreground">Total Estate Value: <span className="font-bold text-secondary">{total.toLocaleString()}</span></p>
+            <h1 className="font-serif text-3xl font-bold text-primary">{t("assets_title")}</h1>
+            <p className="text-muted-foreground">{t("assets_total_estate")}: <span className="font-bold text-secondary">{total.toLocaleString()}</span></p>
           </div>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditing(null); setForm({ name: "", category: "other", value: "", description: "" }); } }}>
             <DialogTrigger asChild>
-              <Button><Plus className="mr-2 h-4 w-4" /> Add Asset</Button>
+              <Button><Plus className="mr-2 h-4 w-4" /> {t("assets_add")}</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle className="font-serif">{editing ? "Edit Asset" : "Add Asset"}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle className="font-serif">{editing ? t("assets_edit") : t("assets_add")}</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+                <div className="space-y-2"><Label>{t("assets_name")}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label>{t("assets_category")}</Label>
                   <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as AssetCategory })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{categories.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                    <SelectContent>{categoryValues.map((c) => <SelectItem key={c} value={c}>{t(getCategoryKey(c))}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Value</Label><Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} required min="0" /></div>
-                <div className="space-y-2"><Label>Description</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
-                <Button type="submit" className="w-full">{editing ? "Update" : "Add"} Asset</Button>
+                <div className="space-y-2"><Label>{t("assets_value")}</Label><Input type="number" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} required min="0" /></div>
+                <div className="space-y-2"><Label>{t("assets_description")}</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+                <Button type="submit" className="w-full">{editing ? t("assets_update") : t("assets_add_btn")} </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -108,19 +103,19 @@ export default function Assets() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Value</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("assets_name")}</TableHead>
+                  <TableHead>{t("assets_category")}</TableHead>
+                  <TableHead className="text-right">{t("assets_value")}</TableHead>
+                  <TableHead className="text-right">{t("assets_actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {assets.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No assets added yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{t("assets_no_assets")}</TableCell></TableRow>
                 ) : assets.map((asset) => (
                   <TableRow key={asset.id}>
                     <TableCell className="font-medium">{asset.name}</TableCell>
-                    <TableCell className="capitalize">{asset.category.replace("_", " ")}</TableCell>
+                    <TableCell>{t(getCategoryKey(asset.category))}</TableCell>
                     <TableCell className="text-right">{Number(asset.value).toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(asset)}><Pencil className="h-4 w-4" /></Button>

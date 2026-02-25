@@ -9,8 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { getRelationshipKey } from "@/i18n";
 import { Constants } from "@/integrations/supabase/types";
 import type { Tables, Database } from "@/integrations/supabase/types";
 
@@ -19,10 +21,9 @@ type HeirRelationship = Database["public"]["Enums"]["heir_relationship"];
 
 const relationships = Constants.public.Enums.heir_relationship;
 
-const formatRelationship = (r: string) => r.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
-
 export default function Heirs() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [heirs, setHeirs] = useState<Heir[]>([]);
   const [open, setOpen] = useState(false);
@@ -44,10 +45,10 @@ export default function Heirs() {
 
     if (editing) {
       const { error } = await supabase.from("heirs").update(payload).eq("id", editing.id);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      if (error) { toast({ title: t("common_error"), description: error.message, variant: "destructive" }); return; }
     } else {
       const { error } = await supabase.from("heirs").insert(payload);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+      if (error) { toast({ title: t("common_error"), description: error.message, variant: "destructive" }); return; }
     }
     setOpen(false); setEditing(null); setForm({ name: "", relationship: "son", phone: "", email: "" });
     fetchHeirs();
@@ -69,27 +70,27 @@ export default function Heirs() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-primary">Heirs</h1>
-            <p className="text-muted-foreground">{heirs.length} heir(s) registered</p>
+            <h1 className="font-serif text-3xl font-bold text-primary">{t("heirs_title")}</h1>
+            <p className="text-muted-foreground">{heirs.length} {t("heirs_count")}</p>
           </div>
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditing(null); setForm({ name: "", relationship: "son", phone: "", email: "" }); } }}>
             <DialogTrigger asChild>
-              <Button><Plus className="mr-2 h-4 w-4" /> Add Heir</Button>
+              <Button><Plus className="mr-2 h-4 w-4" /> {t("heirs_add")}</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle className="font-serif">{editing ? "Edit Heir" : "Add Heir"}</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle className="font-serif">{editing ? t("heirs_edit") : t("heirs_add")}</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2"><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
+                <div className="space-y-2"><Label>{t("heirs_name")}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
                 <div className="space-y-2">
-                  <Label>Relationship</Label>
+                  <Label>{t("heirs_relationship")}</Label>
                   <Select value={form.relationship} onValueChange={(v) => setForm({ ...form, relationship: v as HeirRelationship })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{relationships.map((r) => <SelectItem key={r} value={r}>{formatRelationship(r)}</SelectItem>)}</SelectContent>
+                    <SelectContent>{relationships.map((r) => <SelectItem key={r} value={r}>{t(getRelationshipKey(r))}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2"><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-                <Button type="submit" className="w-full">{editing ? "Update" : "Add"} Heir</Button>
+                <div className="space-y-2"><Label>{t("heirs_phone")}</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+                <div className="space-y-2"><Label>{t("heirs_email")}</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+                <Button type="submit" className="w-full">{editing ? t("heirs_update") : t("heirs_add_btn")} </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -100,19 +101,19 @@ export default function Heirs() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Relationship</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("heirs_name")}</TableHead>
+                  <TableHead>{t("heirs_relationship")}</TableHead>
+                  <TableHead>{t("heirs_contact")}</TableHead>
+                  <TableHead className="text-right">{t("heirs_actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {heirs.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">No heirs added yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{t("heirs_no_heirs")}</TableCell></TableRow>
                 ) : heirs.map((heir) => (
                   <TableRow key={heir.id}>
                     <TableCell className="font-medium">{heir.name}</TableCell>
-                    <TableCell>{formatRelationship(heir.relationship)}</TableCell>
+                    <TableCell>{t(getRelationshipKey(heir.relationship))}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{heir.email || heir.phone || "—"}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => openEdit(heir)}><Pencil className="h-4 w-4" /></Button>

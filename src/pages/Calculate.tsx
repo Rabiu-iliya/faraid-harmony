@@ -8,13 +8,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
 import { Calculator, Save, AlertTriangle } from "lucide-react";
 import { calculateFaraid, type HeirInput, type HeirResult } from "@/lib/faraid";
+import { getRelationshipKey } from "@/i18n";
 import type { Tables } from "@/integrations/supabase/types";
 
 export default function Calculate() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [assets, setAssets] = useState<Tables<"assets">[]>([]);
   const [heirs, setHeirs] = useState<Tables<"heirs">[]>([]);
@@ -38,8 +41,8 @@ export default function Calculate() {
   const totalEstate = assets.reduce((s, a) => s + Number(a.value), 0);
 
   const runCalculation = () => {
-    if (totalEstate <= 0) { toast({ title: "No assets", description: "Please add assets first.", variant: "destructive" }); return; }
-    if (heirs.length === 0) { toast({ title: "No heirs", description: "Please add heirs first.", variant: "destructive" }); return; }
+    if (totalEstate <= 0) { toast({ title: t("calc_no_assets"), description: t("calc_add_assets_first"), variant: "destructive" }); return; }
+    if (heirs.length === 0) { toast({ title: t("calc_no_heirs"), description: t("calc_add_heirs_first"), variant: "destructive" }); return; }
     const heirInputs: HeirInput[] = heirs.map((h) => ({ id: h.id, name: h.name, relationship: h.relationship }));
     const { results: r, awlApplied, raddApplied } = calculateFaraid(heirInputs, totalEstate);
     setResults(r);
@@ -55,7 +58,7 @@ export default function Calculate() {
       user_id: user.id, title, total_estate: totalEstate, currency, awl_applied: awl, radd_applied: radd,
     }).select().single();
 
-    if (error || !calc) { toast({ title: "Error", description: error?.message || "Failed to save", variant: "destructive" }); return; }
+    if (error || !calc) { toast({ title: t("common_error"), description: error?.message || "Failed to save", variant: "destructive" }); return; }
 
     const heirRows = results.map((r) => ({
       calculation_id: calc.id, heir_id: r.id, relationship: r.relationship,
@@ -64,25 +67,25 @@ export default function Calculate() {
     }));
 
     const { error: heirError } = await supabase.from("calculation_heirs").insert(heirRows);
-    if (heirError) { toast({ title: "Error", description: heirError.message, variant: "destructive" }); return; }
-    toast({ title: "Saved!", description: "Calculation saved successfully." });
+    if (heirError) { toast({ title: t("common_error"), description: heirError.message, variant: "destructive" }); return; }
+    toast({ title: t("calc_saved"), description: t("calc_saved_desc") });
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-primary">Calculate Inheritance</h1>
-          <p className="text-muted-foreground">Total Estate: <span className="font-bold text-secondary">{totalEstate.toLocaleString()}</span> · {heirs.length} heir(s)</p>
+          <h1 className="font-serif text-3xl font-bold text-primary">{t("calc_title")}</h1>
+          <p className="text-muted-foreground">{t("calc_total_estate")}: <span className="font-bold text-secondary">{totalEstate.toLocaleString()}</span> · {heirs.length} {t("calc_heir_count")}</p>
         </div>
 
         <div className="flex flex-wrap gap-4 items-end">
           <div className="space-y-2">
-            <Label>Calculation Title</Label>
+            <Label>{t("calc_calc_title")}</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} className="w-64" />
           </div>
-          <Button onClick={runCalculation}><Calculator className="mr-2 h-4 w-4" /> Calculate</Button>
-          {calculated && <Button variant="outline" onClick={saveCalculation}><Save className="mr-2 h-4 w-4" /> Save Result</Button>}
+          <Button onClick={runCalculation}><Calculator className="mr-2 h-4 w-4" /> {t("calc_calculate")}</Button>
+          {calculated && <Button variant="outline" onClick={saveCalculation}><Save className="mr-2 h-4 w-4" /> {t("calc_save")}</Button>}
         </div>
 
         {(awl || radd) && (
@@ -90,8 +93,8 @@ export default function Calculate() {
             <CardContent className="flex items-center gap-3 py-3">
               <AlertTriangle className="h-5 w-5 text-secondary" />
               <span className="text-sm">
-                {awl && "ʿAwl was applied — total fixed shares exceeded estate, shares were proportionally reduced."}
-                {radd && "Radd was applied — surplus was redistributed to eligible heirs."}
+                {awl && t("calc_awl_msg")}
+                {radd && t("calc_radd_msg")}
               </span>
             </CardContent>
           </Card>
@@ -99,34 +102,34 @@ export default function Calculate() {
 
         {calculated && (
           <Card className="border-primary/10">
-            <CardHeader><CardTitle className="font-serif">Distribution Results</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="font-serif">{t("calc_results")}</CardTitle></CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Heir</TableHead>
-                    <TableHead>Relationship</TableHead>
-                    <TableHead>Share Type</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Percentage</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{t("calc_heir")}</TableHead>
+                    <TableHead>{t("calc_relationship")}</TableHead>
+                    <TableHead>{t("calc_share_type")}</TableHead>
+                    <TableHead className="text-right">{t("calc_amount")}</TableHead>
+                    <TableHead className="text-right">{t("calc_percentage")}</TableHead>
+                    <TableHead>{t("calc_status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {results.map((r) => (
                     <TableRow key={r.id} className={r.isBlocked ? "opacity-50" : ""}>
                       <TableCell className="font-medium">{r.name}</TableCell>
-                      <TableCell className="capitalize">{r.relationship.replace(/_/g, " ")}</TableCell>
+                      <TableCell>{t(getRelationshipKey(r.relationship))}</TableCell>
                       <TableCell>{r.fixedShare}</TableCell>
                       <TableCell className="text-right font-mono">{r.shareAmount.toLocaleString()}</TableCell>
                       <TableCell className="text-right">{r.sharePercentage}%</TableCell>
                       <TableCell>
                         {r.isBlocked ? (
-                          <Badge variant="destructive" className="text-xs">{r.blockedBy}</Badge>
+                          <Badge variant="destructive" className="text-xs">{t("calc_blocked")}</Badge>
                         ) : r.isResiduary ? (
-                          <Badge className="bg-secondary text-secondary-foreground text-xs">Residuary</Badge>
+                          <Badge className="bg-secondary text-secondary-foreground text-xs">{t("calc_residuary")}</Badge>
                         ) : (
-                          <Badge className="bg-primary text-primary-foreground text-xs">Fixed</Badge>
+                          <Badge className="bg-primary text-primary-foreground text-xs">{t("calc_fixed")}</Badge>
                         )}
                       </TableCell>
                     </TableRow>
