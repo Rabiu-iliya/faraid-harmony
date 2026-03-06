@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { DashboardFooter } from "@/components/DashboardFooter";
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="flex-1 p-6 overflow-auto islamic-pattern">
             {children}
           </div>
+          <DashboardFooter />
         </main>
       </div>
     </SidebarProvider>

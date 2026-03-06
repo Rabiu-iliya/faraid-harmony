@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Calculator, Save, AlertTriangle } from "lucide-react";
 import { calculateFaraid, type HeirInput, type HeirResult } from "@/lib/faraid";
 import { getRelationshipKey } from "@/i18n";
+import { formatCurrency } from "@/lib/currency";
 import type { Tables } from "@/integrations/supabase/types";
 
 export default function Calculate() {
@@ -26,15 +27,18 @@ export default function Calculate() {
   const [radd, setRadd] = useState(false);
   const [title, setTitle] = useState("New Calculation");
   const [calculated, setCalculated] = useState(false);
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
 
   useEffect(() => {
     if (!user) return;
     Promise.all([
       supabase.from("assets").select("*").eq("user_id", user.id),
       supabase.from("heirs").select("*").eq("user_id", user.id),
-    ]).then(([a, h]) => {
+      supabase.from("user_preferences").select("currency").eq("user_id", user.id).single(),
+    ]).then(([a, h, p]) => {
       setAssets(a.data || []);
       setHeirs(h.data || []);
+      if (p.data?.currency) setDefaultCurrency(p.data.currency);
     });
   }, [user]);
 
@@ -53,7 +57,7 @@ export default function Calculate() {
 
   const saveCalculation = async () => {
     if (!user || !calculated) return;
-    const currency = assets[0]?.currency || "USD";
+    const currency = assets[0]?.currency || defaultCurrency;
     const { data: calc, error } = await supabase.from("calculations").insert({
       user_id: user.id, title, total_estate: totalEstate, currency, awl_applied: awl, radd_applied: radd,
     }).select().single();
@@ -71,12 +75,14 @@ export default function Calculate() {
     toast({ title: t("calc_saved"), description: t("calc_saved_desc") });
   };
 
+  const currency = assets[0]?.currency || defaultCurrency;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
           <h1 className="font-serif text-3xl font-bold text-primary">{t("calc_title")}</h1>
-          <p className="text-muted-foreground">{t("calc_total_estate")}: <span className="font-bold text-secondary">{totalEstate.toLocaleString()}</span> · {heirs.length} {t("calc_heir_count")}</p>
+          <p className="text-muted-foreground">{t("calc_total_estate")}: <span className="font-bold text-secondary">{formatCurrency(totalEstate, currency)}</span> · {heirs.length} {t("calc_heir_count")}</p>
         </div>
 
         <div className="flex flex-wrap gap-4 items-end">
@@ -121,7 +127,7 @@ export default function Calculate() {
                       <TableCell className="font-medium">{r.name}</TableCell>
                       <TableCell>{t(getRelationshipKey(r.relationship))}</TableCell>
                       <TableCell>{r.fixedShare}</TableCell>
-                      <TableCell className="text-right font-mono">{r.shareAmount.toLocaleString()}</TableCell>
+                      <TableCell className="text-right font-mono">{formatCurrency(r.shareAmount, currency)}</TableCell>
                       <TableCell className="text-right">{r.sharePercentage}%</TableCell>
                       <TableCell>
                         {r.isBlocked ? (

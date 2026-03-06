@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Coins, Users, Calculator, FileText, Bot, Settings, LogOut,
+  LayoutDashboard, Coins, Users, Calculator, FileText, Bot, Settings, LogOut, BookOpen, Shield,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import gadoproLogo from "@/assets/gadopro-logo.png";
 import type { TranslationKey } from "@/i18n";
 
 const navItems: { titleKey: TranslationKey; url: string; icon: any }[] = [
@@ -18,7 +19,9 @@ const navItems: { titleKey: TranslationKey; url: string; icon: any }[] = [
   { titleKey: "nav_calculate", url: "/calculate", icon: Calculator },
   { titleKey: "nav_reports", url: "/reports", icon: FileText },
   { titleKey: "nav_gadobot", url: "/gadobot", icon: Bot },
+  { titleKey: "nav_manual", url: "/manual", icon: BookOpen },
   { titleKey: "nav_settings", url: "/settings", icon: Settings },
+  { titleKey: "nav_admin", url: "/admin", icon: Shield },
 ];
 
 export function AppSidebar() {
@@ -28,9 +31,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-sidebar-primary">
-          <span className="font-serif text-lg font-bold text-sidebar-primary-foreground">G</span>
-        </div>
+        <img src={gadoproLogo} alt="GadoPro" className="h-9 w-9" />
         <span className="font-serif text-xl font-bold text-sidebar-foreground">GadoPro</span>
       </div>
       <SidebarContent>

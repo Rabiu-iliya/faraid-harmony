@@ -13,6 +13,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { getRelationshipKey } from "@/i18n";
+import { formatCurrency } from "@/lib/currency";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Calculation = Tables<"calculations">;
@@ -54,10 +55,10 @@ export default function Reports() {
     doc.setFontSize(18);
     doc.text("GadoPro — Inheritance Report", 14, 20);
     doc.setFontSize(12);
-    doc.text(`${selectedCalc.title}`, 14, 30);
-    doc.text(`${t("reports_total_estate")}: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`, 14, 38);
+    doc.text(selectedCalc.title, 14, 30);
+    doc.text(`${t("reports_total_estate")}: ${formatCurrency(Number(selectedCalc.total_estate), selectedCalc.currency)}`, 14, 38);
     if (selectedCalc.awl_applied) doc.text(t("reports_awl"), 14, 46);
-    if (selectedCalc.radd_applied) doc.text(t("reports_radd"), selectedCalc.awl_applied ? 60 : 14, 46);
+    if (selectedCalc.radd_applied) doc.text(t("reports_radd"), selectedCalc.awl_applied ? 80 : 14, 46);
 
     autoTable(doc, {
       startY: 54,
@@ -66,7 +67,7 @@ export default function Reports() {
         h.heirs?.name || "",
         t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
-        Number(h.share_amount).toLocaleString(),
+        formatCurrency(Number(h.share_amount), selectedCalc.currency),
         `${h.share_percentage}%`,
       ]),
     });
@@ -77,11 +78,7 @@ export default function Reports() {
       autoTable(doc, {
         startY: finalY + 14,
         head: [[t("reports_heir"), t("reports_relationship"), t("reports_reason")]],
-        body: blockedHeirs.map((h) => [
-          h.heirs?.name || "",
-          t(getRelationshipKey(h.relationship)),
-          h.blocked_by || "",
-        ]),
+        body: blockedHeirs.map((h) => [h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""]),
       });
     }
 
@@ -93,22 +90,20 @@ export default function Reports() {
     const wsData = [
       ["GadoPro — Inheritance Report"],
       [selectedCalc.title],
-      [`${t("reports_total_estate")}: ${Number(selectedCalc.total_estate).toLocaleString()} ${selectedCalc.currency}`],
+      [`${t("reports_total_estate")}: ${formatCurrency(Number(selectedCalc.total_estate), selectedCalc.currency)}`],
       [],
       [t("reports_heir"), t("reports_relationship"), t("reports_share_type"), t("reports_amount"), t("reports_percentage")],
       ...activeHeirs.map((h) => [
         h.heirs?.name || "",
         t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
-        Number(h.share_amount),
-        h.share_percentage,
+        formatCurrency(Number(h.share_amount), selectedCalc.currency),
+        `${h.share_percentage}%`,
       ]),
     ];
     if (blockedHeirs.length > 0) {
       wsData.push([], [t("reports_blocked_heirs")], [t("reports_heir"), t("reports_relationship"), t("reports_reason")]);
-      blockedHeirs.forEach((h) =>
-        wsData.push([h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""])
-      );
+      blockedHeirs.forEach((h) => wsData.push([h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""]));
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
@@ -123,12 +118,8 @@ export default function Reports() {
           <h1 className="font-serif text-3xl font-bold text-primary">{t("reports_title")}</h1>
           {selectedCalc && (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={exportPDF}>
-                <Download className="mr-1 h-4 w-4" /> PDF
-              </Button>
-              <Button variant="outline" size="sm" onClick={exportExcel}>
-                <Download className="mr-1 h-4 w-4" /> Excel
-              </Button>
+              <Button variant="outline" size="sm" onClick={exportPDF}><Download className="mr-1 h-4 w-4" /> PDF</Button>
+              <Button variant="outline" size="sm" onClick={exportExcel}><Download className="mr-1 h-4 w-4" /> Excel</Button>
             </div>
           )}
         </div>
@@ -151,7 +142,7 @@ export default function Reports() {
                 <CardHeader>
                   <CardTitle className="font-serif">{selectedCalc.title}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {t("reports_total_estate")}: <span className="font-bold text-secondary">{Number(selectedCalc.total_estate).toLocaleString()} {selectedCalc.currency}</span>
+                    {t("reports_total_estate")}: <span className="font-bold text-secondary">{formatCurrency(Number(selectedCalc.total_estate), selectedCalc.currency)}</span>
                     {selectedCalc.awl_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">{t("reports_awl")}</Badge>}
                     {selectedCalc.radd_applied && <Badge className="ml-2 bg-secondary text-secondary-foreground">{t("reports_radd")}</Badge>}
                   </p>
@@ -208,7 +199,7 @@ export default function Reports() {
                         <TableCell className="font-medium">{h.heirs?.name}</TableCell>
                         <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                         <TableCell>{h.fixed_share}</TableCell>
-                        <TableCell className="text-right font-mono">{Number(h.share_amount).toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono">{selectedCalc ? formatCurrency(Number(h.share_amount), selectedCalc.currency) : h.share_amount}</TableCell>
                         <TableCell className="text-right">{h.share_percentage}%</TableCell>
                       </TableRow>
                     ))}
