@@ -13,6 +13,9 @@ import Calculate from "./pages/Calculate";
 import Reports from "./pages/Reports";
 import GadoBot from "./pages/GadoBot";
 import SettingsPage from "./pages/SettingsPage";
+import Manual from "./pages/Manual";
+import Admin from "./pages/Admin";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => (
   <Routes>
     <Route path="/auth" element={<Auth />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
@@ -35,6 +39,8 @@ const AppRoutes = () => (
     <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
     <Route path="/gadobot" element={<ProtectedRoute><GadoBot /></ProtectedRoute>} />
     <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+    <Route path="/manual" element={<ProtectedRoute><Manual /></ProtectedRoute>} />
+    <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );
