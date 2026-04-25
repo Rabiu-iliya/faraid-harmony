@@ -56,50 +56,45 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 max-w-full">
         <div>
-          <h1 className="font-serif text-3xl font-bold text-primary">{t("dashboard_title")}</h1>
-          <p className="text-muted-foreground">{t("dashboard_welcome")}</p>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-primary break-words">{t("dashboard_title")}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{t("dashboard_welcome")}</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
             <Card key={card.title} className="border-primary/10">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-                <card.icon className="h-5 w-5 text-secondary" />
+              <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-6 sm:pb-2 space-y-0">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-2">{card.title}</CardTitle>
+                <card.icon className="h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-primary">{card.value}</div>
-                <p className="text-xs text-muted-foreground">{card.desc}</p>
+              <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                <div className="text-2xl sm:text-3xl font-bold text-primary">{card.value}</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2 break-words">{card.desc}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         <Card className="border-primary/10">
-          <CardHeader><CardTitle className="font-serif">{t("dashboard_recent_cases")}</CardTitle></CardHeader>
+          <CardHeader className="p-4 sm:p-6"><CardTitle className="font-serif text-lg sm:text-xl">{t("dashboard_recent_cases")}</CardTitle></CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("calc_calc_title")}</TableHead>
-                  <TableHead>{t("calc_total_estate")}</TableHead>
-                  <TableHead>{t("admin_case_date")}</TableHead>
-                  <TableHead className="text-right">{t("assets_actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cases.length === 0 ? (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-8">{t("dashboard_no_cases")}</TableCell></TableRow>
-                ) : cases.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.title}</TableCell>
-                    <TableCell>{formatCurrency(Number(c.total_estate), c.currency)}</TableCell>
-                    <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
+            {cases.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-8 px-4">{t("dashboard_no_cases")}</p>
+            ) : (
+              <>
+                {/* Mobile: card list */}
+                <ul className="md:hidden divide-y divide-border">
+                  {cases.map((c) => (
+                    <li key={c.id} className="p-4 flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{c.title}</p>
+                        <p className="text-sm text-primary font-semibold mt-0.5 break-words">{formatCurrency(Number(c.total_estate), c.currency)}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{new Date(c.created_at).toLocaleDateString()}</p>
+                      </div>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          <Button variant="ghost" size="icon" className="shrink-0"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
@@ -112,11 +107,50 @@ export default function Dashboard() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </li>
+                  ))}
+                </ul>
+                {/* Desktop: table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("calc_calc_title")}</TableHead>
+                        <TableHead>{t("calc_total_estate")}</TableHead>
+                        <TableHead>{t("admin_case_date")}</TableHead>
+                        <TableHead className="text-right">{t("assets_actions")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cases.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell className="font-medium">{c.title}</TableCell>
+                          <TableCell>{formatCurrency(Number(c.total_estate), c.currency)}</TableCell>
+                          <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>{t("dashboard_delete_case")}</AlertDialogTitle>
+                                  <AlertDialogDescription>{t("dashboard_delete_case_desc")}</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteCase(c.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t("dashboard_confirm_delete")}</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
