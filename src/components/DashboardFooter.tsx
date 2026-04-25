@@ -6,8 +6,8 @@ export function DashboardFooter() {
 
   return (
     <footer className="border-t border-border bg-card/80 backdrop-blur islamic-pattern">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid gap-6 md:grid-cols-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 md:grid-cols-3">
           <div>
             <h3 className="font-serif text-lg font-bold text-primary mb-1">GadoPro</h3>
             <p className="text-sm text-muted-foreground">{t("footer_tagline")}</p>
@@ -21,7 +21,7 @@ export function DashboardFooter() {
               <li><a href="/manual" className="text-muted-foreground hover:text-primary transition-colors">{t("nav_manual")}</a></li>
             </ul>
           </div>
-          <div className="text-sm text-muted-foreground md:text-right">
+          <div className="text-sm text-muted-foreground sm:col-span-2 md:col-span-1 md:text-right">
             <p>© {year} GadoPro</p>
             <p className="mt-1">{t("footer_rights")}</p>
           </div>
