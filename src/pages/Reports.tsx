@@ -45,8 +45,9 @@ export default function Reports() {
 
   const activeHeirs = heirResults.filter((h) => !h.is_blocked);
   const blockedHeirs = heirResults.filter((h) => h.is_blocked);
-  const pieData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", value: h.share_percentage }));
-  const barData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", amount: h.share_amount }));
+  const nameOf = (h: CalcHeir) => h.heir_name || h.heirs?.name || "Unknown";
+  const pieData = activeHeirs.map((h) => ({ name: nameOf(h), value: h.share_percentage }));
+  const barData = activeHeirs.map((h) => ({ name: nameOf(h), amount: h.share_amount }));
   const selectedCalc = calculations.find((c) => c.id === selected);
 
   const exportPDF = () => {
