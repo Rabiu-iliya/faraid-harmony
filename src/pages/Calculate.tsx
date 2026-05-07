@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useToast } from "@/hooks/use-toast";
-import { Calculator, Save, AlertTriangle } from "lucide-react";
+import { Calculator, Save, AlertTriangle, FilePlus2 } from "lucide-react";
 import { calculateFaraid, type HeirInput, type HeirResult } from "@/lib/faraid";
 import { getRelationshipKey } from "@/i18n";
 import { formatCurrency } from "@/lib/currency";
@@ -75,6 +76,22 @@ export default function Calculate() {
     toast({ title: t("calc_saved"), description: t("calc_saved_desc") });
   };
 
+  const startNewCase = async () => {
+    if (!user) return;
+    await Promise.all([
+      supabase.from("assets").delete().eq("user_id", user.id),
+      supabase.from("heirs").delete().eq("user_id", user.id),
+    ]);
+    setAssets([]);
+    setHeirs([]);
+    setResults([]);
+    setCalculated(false);
+    setAwl(false);
+    setRadd(false);
+    setTitle("New Calculation");
+    toast({ title: t("calc_new_case_started") });
+  };
+
   const currency = assets[0]?.currency || defaultCurrency;
 
   return (
@@ -92,6 +109,21 @@ export default function Calculate() {
           </div>
           <Button onClick={runCalculation}><Calculator className="mr-2 h-4 w-4" /> {t("calc_calculate")}</Button>
           {calculated && <Button variant="outline" onClick={saveCalculation}><Save className="mr-2 h-4 w-4" /> {t("calc_save")}</Button>}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="secondary"><FilePlus2 className="mr-2 h-4 w-4" /> {t("calc_new_case")}</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("calc_new_case_title")}</AlertDialogTitle>
+                <AlertDialogDescription>{t("calc_new_case_desc")}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={startNewCase}>{t("calc_new_case_confirm")}</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {(awl || radd) && (

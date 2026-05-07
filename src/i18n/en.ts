@@ -131,6 +131,11 @@ const en = {
   calc_fixed: "Fixed Share",
   calc_saved: "Saved Successfully!",
   calc_saved_desc: "Your calculation has been saved. View it anytime in the Reports section.",
+  calc_new_case: "Start New Case",
+  calc_new_case_title: "Start a New Case?",
+  calc_new_case_desc: "This will clear all current assets and heirs so you can begin a fresh inheritance case. Your saved calculations in Reports will not be affected.",
+  calc_new_case_confirm: "Yes, Start New Case",
+  calc_new_case_started: "New case started. Add assets and heirs to begin.",
 
   // Reports
   reports_title: "Reports",

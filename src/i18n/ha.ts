@@ -131,6 +131,11 @@ const ha = {
   calc_fixed: "Takamaiman Rabo",
   calc_saved: "An Ajiye Cikin Nasara!",
   calc_saved_desc: "An ajiye lissafin ku. Kuna iya ganin shi koyaushe a sashin Rahotanni.",
+  calc_new_case: "Fara Sabon Shari'a",
+  calc_new_case_title: "Fara Sabon Shari'a?",
+  calc_new_case_desc: "Wannan zai share dukkan kadarori da magada na yanzu domin ku fara sabon shari'ar gado. Lissafin da aka ajiye a Rahotanni ba zai shafa ba.",
+  calc_new_case_confirm: "Ee, Fara Sabon Shari'a",
+  calc_new_case_started: "An fara sabon shari'a. Ƙara kadarori da magada don farawa.",
 
   // Reports
   reports_title: "Rahotanni",
