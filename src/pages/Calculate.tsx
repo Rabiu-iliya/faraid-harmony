@@ -59,14 +59,16 @@ export default function Calculate() {
   const saveCalculation = async () => {
     if (!user || !calculated) return;
     const currency = assets[0]?.currency || defaultCurrency;
+    const assetsSnapshot = assets.map((a) => ({ name: a.name, category: a.category, value: Number(a.value), currency: a.currency, description: a.description }));
     const { data: calc, error } = await supabase.from("calculations").insert({
       user_id: user.id, title, total_estate: totalEstate, currency, awl_applied: awl, radd_applied: radd,
+      assets_snapshot: assetsSnapshot,
     }).select().single();
 
     if (error || !calc) { toast({ title: t("common_error"), description: error?.message || "Failed to save", variant: "destructive" }); return; }
 
     const heirRows = results.map((r) => ({
-      calculation_id: calc.id, heir_id: r.id, relationship: r.relationship,
+      calculation_id: calc.id, heir_id: r.id, heir_name: r.name, relationship: r.relationship,
       fixed_share: r.fixedShare, share_fraction: r.shareFraction, share_amount: r.shareAmount,
       share_percentage: r.sharePercentage, is_blocked: r.isBlocked, blocked_by: r.blockedBy, is_residuary: r.isResiduary,
     }));

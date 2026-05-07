@@ -57,6 +57,7 @@ export type Database = {
           created_at: string
           fixed_share: string | null
           heir_id: string
+          heir_name: string
           id: string
           is_blocked: boolean
           is_residuary: boolean
@@ -71,6 +72,7 @@ export type Database = {
           created_at?: string
           fixed_share?: string | null
           heir_id: string
+          heir_name?: string
           id?: string
           is_blocked?: boolean
           is_residuary?: boolean
@@ -85,6 +87,7 @@ export type Database = {
           created_at?: string
           fixed_share?: string | null
           heir_id?: string
+          heir_name?: string
           id?: string
           is_blocked?: boolean
           is_residuary?: boolean
@@ -112,6 +115,7 @@ export type Database = {
       }
       calculations: {
         Row: {
+          assets_snapshot: Json
           awl_applied: boolean
           created_at: string
           currency: string
@@ -123,6 +127,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assets_snapshot?: Json
           awl_applied?: boolean
           created_at?: string
           currency: string
@@ -134,6 +139,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assets_snapshot?: Json
           awl_applied?: boolean
           created_at?: string
           currency?: string

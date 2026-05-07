@@ -45,8 +45,9 @@ export default function Reports() {
 
   const activeHeirs = heirResults.filter((h) => !h.is_blocked);
   const blockedHeirs = heirResults.filter((h) => h.is_blocked);
-  const pieData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", value: h.share_percentage }));
-  const barData = activeHeirs.map((h) => ({ name: h.heirs?.name || "Unknown", amount: h.share_amount }));
+  const nameOf = (h: CalcHeir) => h.heir_name || h.heirs?.name || "Unknown";
+  const pieData = activeHeirs.map((h) => ({ name: nameOf(h), value: h.share_percentage }));
+  const barData = activeHeirs.map((h) => ({ name: nameOf(h), amount: h.share_amount }));
   const selectedCalc = calculations.find((c) => c.id === selected);
 
   const exportPDF = () => {
@@ -64,7 +65,7 @@ export default function Reports() {
       startY: 54,
       head: [[t("reports_heir"), t("reports_relationship"), t("reports_share_type"), t("reports_amount"), t("reports_percentage")]],
       body: activeHeirs.map((h) => [
-        h.heirs?.name || "",
+        nameOf(h),
         t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
         formatCurrency(Number(h.share_amount), selectedCalc.currency),
@@ -78,7 +79,7 @@ export default function Reports() {
       autoTable(doc, {
         startY: finalY + 14,
         head: [[t("reports_heir"), t("reports_relationship"), t("reports_reason")]],
-        body: blockedHeirs.map((h) => [h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""]),
+        body: blockedHeirs.map((h) => [nameOf(h), t(getRelationshipKey(h.relationship)), h.blocked_by || ""]),
       });
     }
 
@@ -94,7 +95,7 @@ export default function Reports() {
       [],
       [t("reports_heir"), t("reports_relationship"), t("reports_share_type"), t("reports_amount"), t("reports_percentage")],
       ...activeHeirs.map((h) => [
-        h.heirs?.name || "",
+        nameOf(h),
         t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
         formatCurrency(Number(h.share_amount), selectedCalc.currency),
@@ -103,7 +104,7 @@ export default function Reports() {
     ];
     if (blockedHeirs.length > 0) {
       wsData.push([], [t("reports_blocked_heirs")], [t("reports_heir"), t("reports_relationship"), t("reports_reason")]);
-      blockedHeirs.forEach((h) => wsData.push([h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""]));
+      blockedHeirs.forEach((h) => wsData.push([nameOf(h), t(getRelationshipKey(h.relationship)), h.blocked_by || ""]));
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
@@ -196,7 +197,7 @@ export default function Reports() {
                   <TableBody>
                     {activeHeirs.map((h) => (
                       <TableRow key={h.id}>
-                        <TableCell className="font-medium">{h.heirs?.name}</TableCell>
+                        <TableCell className="font-medium">{nameOf(h)}</TableCell>
                         <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                         <TableCell>{h.fixed_share}</TableCell>
                         <TableCell className="text-right font-mono">{selectedCalc ? formatCurrency(Number(h.share_amount), selectedCalc.currency) : h.share_amount}</TableCell>
@@ -217,7 +218,7 @@ export default function Reports() {
                     <TableBody>
                       {blockedHeirs.map((h) => (
                         <TableRow key={h.id}>
-                          <TableCell>{h.heirs?.name}</TableCell>
+                          <TableCell>{nameOf(h)}</TableCell>
                           <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                           <TableCell><Badge variant="destructive">{h.blocked_by}</Badge></TableCell>
                         </TableRow>
