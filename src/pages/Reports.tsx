@@ -197,7 +197,7 @@ export default function Reports() {
                   <TableBody>
                     {activeHeirs.map((h) => (
                       <TableRow key={h.id}>
-                        <TableCell className="font-medium">{h.heirs?.name}</TableCell>
+                        <TableCell className="font-medium">{nameOf(h)}</TableCell>
                         <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                         <TableCell>{h.fixed_share}</TableCell>
                         <TableCell className="text-right font-mono">{selectedCalc ? formatCurrency(Number(h.share_amount), selectedCalc.currency) : h.share_amount}</TableCell>
