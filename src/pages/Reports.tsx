@@ -79,7 +79,7 @@ export default function Reports() {
       autoTable(doc, {
         startY: finalY + 14,
         head: [[t("reports_heir"), t("reports_relationship"), t("reports_reason")]],
-        body: blockedHeirs.map((h) => [h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""]),
+        body: blockedHeirs.map((h) => [nameOf(h), t(getRelationshipKey(h.relationship)), h.blocked_by || ""]),
       });
     }
 
