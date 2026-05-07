@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff } from "lucide-react";
 import gadoproLogo from "@/assets/gadopro-logo.png";
 
 export default function ResetPassword() {
@@ -13,6 +14,8 @@ export default function ResetPassword() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -71,12 +74,22 @@ export default function ResetPassword() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>New Password</Label>
-              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+              <div className="relative">
+                <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} className="pr-10" />
+                <button type="button" onClick={() => setShowPassword((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label={showPassword ? "Hide password" : "Show password"}>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               <p className="text-xs text-muted-foreground">Min 8 characters, 1 uppercase, 1 number.</p>
             </div>
             <div className="space-y-2">
               <Label>Confirm Password</Label>
-              <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+              <div className="relative">
+                <Input type={showConfirm ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)} required className="pr-10" />
+                <button type="button" onClick={() => setShowConfirm((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label={showConfirm ? "Hide password" : "Show password"}>
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Updating..." : "Update Password"}
