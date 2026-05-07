@@ -76,6 +76,22 @@ export default function Calculate() {
     toast({ title: t("calc_saved"), description: t("calc_saved_desc") });
   };
 
+  const startNewCase = async () => {
+    if (!user) return;
+    await Promise.all([
+      supabase.from("assets").delete().eq("user_id", user.id),
+      supabase.from("heirs").delete().eq("user_id", user.id),
+    ]);
+    setAssets([]);
+    setHeirs([]);
+    setResults([]);
+    setCalculated(false);
+    setAwl(false);
+    setRadd(false);
+    setTitle("New Calculation");
+    toast({ title: t("calc_new_case_started") });
+  };
+
   const currency = assets[0]?.currency || defaultCurrency;
 
   return (
