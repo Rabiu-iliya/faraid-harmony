@@ -109,6 +109,21 @@ export default function Calculate() {
           </div>
           <Button onClick={runCalculation}><Calculator className="mr-2 h-4 w-4" /> {t("calc_calculate")}</Button>
           {calculated && <Button variant="outline" onClick={saveCalculation}><Save className="mr-2 h-4 w-4" /> {t("calc_save")}</Button>}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="secondary"><FilePlus2 className="mr-2 h-4 w-4" /> {t("calc_new_case")}</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("calc_new_case_title")}</AlertDialogTitle>
+                <AlertDialogDescription>{t("calc_new_case_desc")}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common_cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={startNewCase}>{t("calc_new_case_confirm")}</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {(awl || radd) && (
