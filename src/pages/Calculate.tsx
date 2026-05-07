@@ -68,7 +68,7 @@ export default function Calculate() {
     if (error || !calc) { toast({ title: t("common_error"), description: error?.message || "Failed to save", variant: "destructive" }); return; }
 
     const heirRows = results.map((r) => ({
-      calculation_id: calc.id, heir_id: r.id, relationship: r.relationship,
+      calculation_id: calc.id, heir_id: r.id, heir_name: r.name, relationship: r.relationship,
       fixed_share: r.fixedShare, share_fraction: r.shareFraction, share_amount: r.shareAmount,
       share_percentage: r.sharePercentage, is_blocked: r.isBlocked, blocked_by: r.blockedBy, is_residuary: r.isResiduary,
     }));
