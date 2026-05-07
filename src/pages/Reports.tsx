@@ -95,7 +95,7 @@ export default function Reports() {
       [],
       [t("reports_heir"), t("reports_relationship"), t("reports_share_type"), t("reports_amount"), t("reports_percentage")],
       ...activeHeirs.map((h) => [
-        h.heirs?.name || "",
+        nameOf(h),
         t(getRelationshipKey(h.relationship)),
         h.fixed_share || "",
         formatCurrency(Number(h.share_amount), selectedCalc.currency),
