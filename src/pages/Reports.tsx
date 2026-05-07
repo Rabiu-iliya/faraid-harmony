@@ -218,7 +218,7 @@ export default function Reports() {
                     <TableBody>
                       {blockedHeirs.map((h) => (
                         <TableRow key={h.id}>
-                          <TableCell>{h.heirs?.name}</TableCell>
+                          <TableCell>{nameOf(h)}</TableCell>
                           <TableCell>{t(getRelationshipKey(h.relationship))}</TableCell>
                           <TableCell><Badge variant="destructive">{h.blocked_by}</Badge></TableCell>
                         </TableRow>
