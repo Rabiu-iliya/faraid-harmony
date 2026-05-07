@@ -1,0 +1,2 @@
+ALTER TABLE public.calculation_heirs ADD COLUMN IF NOT EXISTS heir_name text NOT NULL DEFAULT '';
+ALTER TABLE public.calculations ADD COLUMN IF NOT EXISTS assets_snapshot jsonb NOT NULL DEFAULT '[]'::jsonb;
