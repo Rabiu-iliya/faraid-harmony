@@ -104,7 +104,7 @@ export default function Reports() {
     ];
     if (blockedHeirs.length > 0) {
       wsData.push([], [t("reports_blocked_heirs")], [t("reports_heir"), t("reports_relationship"), t("reports_reason")]);
-      blockedHeirs.forEach((h) => wsData.push([h.heirs?.name || "", t(getRelationshipKey(h.relationship)), h.blocked_by || ""]));
+      blockedHeirs.forEach((h) => wsData.push([nameOf(h), t(getRelationshipKey(h.relationship)), h.blocked_by || ""]));
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
